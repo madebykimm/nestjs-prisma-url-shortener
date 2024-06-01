@@ -7,7 +7,7 @@ import {
 import { ShortenURLDto } from './dtos/url.dto';
 import { nanoid } from 'nanoid';
 import { isURL } from 'class-validator';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UrlService {

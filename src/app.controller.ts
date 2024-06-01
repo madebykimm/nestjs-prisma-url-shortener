@@ -1,12 +1,14 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UrlService } from './url/url.service';
+import { CachingService } from './cache/caching.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly urlService: UrlService,
+    private readonly cachingService: CachingService,
   ) {}
 
   @Get()
@@ -20,7 +22,11 @@ export class AppController {
     @Param('code')
     code: string,
   ) {
-    const url = await this.urlService.redirect(code);
+    let url = await this.cachingService.getFromCache(`url-code-${code}`);
+    if (!url) {
+      url = await this.urlService.redirect(code);
+      await this.cachingService.addToCache(`url-code-${code}`, url);
+    }
 
     return res.redirect(url.longUrl);
   }
