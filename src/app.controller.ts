@@ -28,6 +28,7 @@ export class AppController {
       await this.cachingService.addToCache(`url-code-${code}`, url);
     }
 
+    await this.urlService.recordHit(code);
     return res.redirect(url.longUrl);
   }
 }

@@ -147,7 +147,34 @@ export class UrlService {
           urlCode,
         },
       });
+      await this.prisma.url.update({
+        where: {
+          urlCode,
+        },
+        data: {
+          totalHit: url.totalHit + 1,
+        },
+      });
       if (url) return url;
+    } catch (error) {
+      throw new NotFoundException('Resource Not Found');
+    }
+  }
+  async recordHit(urlCode: string) {
+    try {
+      const url = await this.prisma.url.findFirst({
+        where: {
+          urlCode,
+        },
+      });
+      await this.prisma.url.update({
+        where: {
+          urlCode,
+        },
+        data: {
+          totalHit: url.totalHit + 1,
+        },
+      });
     } catch (error) {
       throw new NotFoundException('Resource Not Found');
     }
