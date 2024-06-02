@@ -10,20 +10,15 @@ COPY package*.json ./
 # Install production dependencies.
 RUN npm install
 
-# Ensure we install dependencies from within the container environment
-RUN npm rebuild bcrypt
-
 # Copy local code to the container image.
 COPY . .
-
-RUN npm install bcrypt
-
-# Install Prisma CLI
-RUN npm install prisma
-
 
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Run the web service on container startup.
-CMD ["bash", "-c", "npx prisma migrate dev && npm run start:dev && npx prisma seed"]
+CMD ["npx", "prisma", "migrate","dev"]
+
+CMD ["bash", "-c", "npm run seed"]
+
+# Run the seed script and then start the application
+CMD ["bash", "-c", "npm run start:dev"]
