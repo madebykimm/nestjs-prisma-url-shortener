@@ -30,7 +30,16 @@
 
 ```bash
 $ yarn install
+
+$ cp .env-example .env
+
+$ npx prisma generate
+
+$ npx prisma migrate dev
+
+$ npm run seed
 ```
+
 
 ## Running the app
 
@@ -44,6 +53,21 @@ $ yarn run start:dev
 # production mode
 $ yarn run start:prod
 ```
+
+## Running the app in docker
+
+```bash
+# development
+$ npm install
+
+# copy env file
+$ cp .env-example .env
+
+# to build containesr
+$ docker-compose up --build
+```
+
+## Default PORT is 3000
 
 ## Test
 
