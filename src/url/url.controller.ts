@@ -15,7 +15,7 @@ import { UrlService } from './url.service';
 import { ShortenURLDto } from './dtos/url.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
-import { CachingService } from 'src/cache/caching.service';
+import { CachingService } from '../cache/caching.service';
 
 @Controller('admin/urls')
 @ApiTags('Admin URL')
