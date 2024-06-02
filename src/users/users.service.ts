@@ -1,5 +1,9 @@
 // src/users/users.service.ts
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,11 +16,14 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const isExist = this.prisma.user.findUnique({
+    const isExist = await this.prisma.user.findUnique({
       where: { email: createUserDto.email },
     });
+    console.log(isExist);
 
-    if (isExist) throw new BadRequestException('Email already exist!');
+    if (isExist) {
+      throw new BadRequestException('Email already Exist!');
+    }
 
     const hashedPassword = await bcrypt.hash(
       createUserDto.password,
@@ -25,7 +32,7 @@ export class UsersService {
 
     createUserDto.password = hashedPassword;
 
-    return this.prisma.user.create({
+    return await this.prisma.user.create({
       data: createUserDto,
     });
   }
@@ -34,11 +41,26 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
-  findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+  async findOne(id: number) {
+    const isExist = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!isExist) {
+      throw new BadRequestException('User Not Found!');
+    }
+    return await this.prisma.user.findUnique({ where: { id } });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const isExist = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!isExist) {
+      throw new BadRequestException('User Not Found!');
+    }
+
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(
         updateUserDto.password,
@@ -46,13 +68,29 @@ export class UsersService {
       );
     }
 
-    return this.prisma.user.update({
+    return await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
     });
   }
 
-  remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+  async softDelete(id: number) {
+    const isExist = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!isExist) {
+      throw new BadRequestException('User Not Found!');
+    }
+
+    try {
+      const url = await this.prisma.user.update({
+        where: { id },
+        data: { isDeleted: true },
+      });
+      if (url) return url;
+    } catch (error) {
+      throw new NotFoundException('User Not Found');
+    }
   }
 }

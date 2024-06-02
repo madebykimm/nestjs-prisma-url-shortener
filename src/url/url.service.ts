@@ -50,9 +50,12 @@ export class UrlService {
     }
   }
 
-  async findAll(page: number, limit: number) {
+  async findAll(page: number, limit: number, currentUserId: number) {
     const skip = (page - 1) * limit;
     const data = await this.prisma.url.findMany({
+      where: {
+        authorId: currentUserId,
+      },
       skip,
       take: limit,
     });

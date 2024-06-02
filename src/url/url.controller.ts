@@ -16,12 +16,20 @@ import { ShortenURLDto } from './dtos/url.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { CachingService } from '../cache/caching.service';
+import { Url, User } from '@prisma/client';
+import { url } from 'inspector';
+import {
+  PaginationQueryDto,
+  PaginationResultDto,
+} from 'src/paginator/dto/paginator.dto';
+import { PaginationService } from 'src/paginator/pagination.service';
 
 @Controller('admin/urls')
 @ApiTags('Admin URL')
 export class UrlController {
   constructor(
     private service: UrlService,
+    private readonly paginationService: PaginationService,
     private readonly cachingService: CachingService,
   ) {}
 
@@ -41,16 +49,15 @@ export class UrlController {
   @ApiBearerAuth('access-token')
   @Get()
   async findAll(
-    @Query('page', ParseIntPipe) page: number = 1, // Default page is 1
-    @Query('limit', ParseIntPipe) limit: number = 10, // Default limit is 10
     @Req() req: any,
-  ) {
+    @Query() { page, limit }: PaginationQueryDto,
+  ): Promise<PaginationResultDto<Url>> {
     const currentUserId = req.user.id;
     let urls = await this.cachingService.getFromCache(
       `url-${currentUserId}-${page}-${limit}`,
     );
     if (!urls) {
-      urls = await this.service.findAll(page, limit);
+      urls = this.paginationService.paginate<Url>({ page, limit }, 'url');
       await this.cachingService.addToCache(
         `url-${currentUserId}-${page}-${limit}`,
         urls,

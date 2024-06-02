@@ -7,17 +7,28 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
+import {
+  PaginationQueryDto,
+  PaginationResultDto,
+} from 'src/paginator/dto/paginator.dto';
+import { User } from '@prisma/client';
+import { PaginationService } from '../paginator/pagination.service';
 
-@Controller('users')
+@Controller('admin/users')
 @ApiTags('User')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly paginationService: PaginationService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -29,8 +40,10 @@ export class UsersController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  findAll() {
-    return this.usersService.findAll();
+  findAll(
+    @Query() paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResultDto<User>> {
+    return this.paginationService.paginate<User>(paginationQuery, 'user');
   }
 
   @Get(':id')
@@ -40,7 +53,7 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -50,7 +63,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.usersService.softDelete(id);
   }
 }
